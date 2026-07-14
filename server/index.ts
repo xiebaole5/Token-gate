@@ -13,6 +13,7 @@ import {
   quotaStatus,
 } from './store';
 import { handleProxy } from './proxy';
+import { handleMusicGenerate } from './music';
 import { usageBus } from './bus';
 import { testProvider } from './test';
 import { probeLocalModels, resolveButlerProvider, askButler } from './butler';
@@ -323,6 +324,9 @@ app.get('/api/stream', (req, res) => {
   });
 });
 
+// ---- 音乐生成：POST /api/v1/music/generate（对接 MiniMax music API）----
+app.post('/api/v1/music/generate', handleMusicGenerate);
+
 // ---- 代理网关：/proxy/:providerId/<任意上游路径> ----
 app.all(/^\/proxy\/([^/]+)\/(.*)$/, (req, res) => {
   // 把正则捕获映射到 params
@@ -331,7 +335,16 @@ app.all(/^\/proxy\/([^/]+)\/(.*)$/, (req, res) => {
   handleProxy(req, res);
 });
 
+// ---- 音乐盒静态文件（同源 iframe，避免跨域）----
+const musicboxDir = path.resolve(import.meta.dirname, '../../musicbox');
+if (fs.existsSync(musicboxDir)) {
+  app.use('/musicbox', express.static(musicboxDir));
+}
+
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`TokenGate 本地后端：http://127.0.0.1:${PORT}（仅本机）`);
   console.log(`代理地址示例：http://127.0.0.1:${PORT}/proxy/<providerId>/v1`);
+  if (fs.existsSync(musicboxDir)) {
+    console.log(`音乐盒：http://127.0.0.1:${PORT}/musicbox/index.html`);
+  }
 });

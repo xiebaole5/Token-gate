@@ -115,6 +115,62 @@ npm start
 
 ---
 
+## 🎵 Token管家音乐盒
+
+TokenGate 的沉浸式 AI 音乐播放器:输入一句话灵感,AI 自动写词谱曲生成完整歌曲,播放时 8100 个体素随音频频谱实时起伏,Token 消耗化成水银柱跳动。
+
+### 音乐盒截图
+
+| | |
+|---|---|
+| ![启动屏](./screenshots/musicbox/05-splash.png) | ![播放全景](./screenshots/musicbox/04-fullview.png) |
+| **启动屏** · Token管家音乐盒 | **播放中** · 体素星球 + 全部浮层 |
+| ![创作面板](./screenshots/musicbox/03-create.png) | ![空闲全景](./screenshots/musicbox/01-idle.png) |
+| **创作面板** · 输入灵感自动写词 | **空闲状态** · 3/4 俯视体素星球 |
+
+### 音乐盒功能
+
+- **AI 音乐生成**:输入一句话(如"温州的夏夜 海风和吉他"),调用 MiniMax Music 2.6 自动写词 + 谱曲 + 演唱,生成 256kbps MP3
+- **沉浸式 3D 可视化**:90x90 体素星球(InstancedMesh),Simplex Noise 地形 + 音频波形驱动高度变化 + 中心光环节拍脉冲
+- **实时音频频谱**:Web Audio FFT 提取 BASS/MID/TREBLE/ENERGY 四维数据,分别驱动不同视觉效果
+- **Token 水银柱**:实时显示 token/s 消耗,渐变色从绿到红
+- **歌词同步**:左侧竖排歌词列表,当前句高亮 + 青色圆点标记
+
+### 音乐盒启动
+
+```bash
+# 需要先配置 MINIMAX_API_KEY（见上方 .env.example）
+
+# 1. 启动后端（TokenGate 8787 端口自带音乐盒静态服务）
+cd tokengate
+npm install
+npx tsx server/index.ts
+
+# 2. 浏览器打开
+http://127.0.0.1:8787/musicbox/index.html
+```
+
+### 音乐盒技术栈
+
+- 前端:Three.js 0.128 (InstancedMesh + OrbitControls + UnrealBloomPass + FogExp2)
+- 音频:Web Audio API (AnalyserNode FFT 2048)
+- AI 模型:MiniMax Music 2.6 (音乐生成) + MiniMax Lyrics Generation (歌词生成)
+- 性能:122 FPS,单 draw call 渲染 8100 体素
+
+### 音乐盒 API
+
+```bash
+curl -X POST http://127.0.0.1:8787/api/v1/music/generate \
+  -H 'Content-Type: application/json' \
+  -d '{"idea":"温州的夏夜 海风和吉他"}' \
+  --output song.mp3
+
+# 响应头: X-Music-Lyrics / X-Music-Model / X-Music-Source
+# 生成耗时约 2 分钟,输出约 5MB MP3
+```
+
+---
+
 ## 📜 许可
 
 参赛/演示作品,不对外承诺兼容性。自用随便改。

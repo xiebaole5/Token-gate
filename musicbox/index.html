@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Token管家音乐盒 · 沉浸式 AI 音乐播放器</title>
+  <link rel="stylesheet" href="css/musicbox.css?v2" />
+</head>
+<body>
+  <!-- 启动屏 -->
+  <div id="splash">
+    <div class="splash-title">Token管家音乐盒</div>
+    <div class="splash-sub">沉浸式 AI 音乐播放器 · 用 token 的波动奏成一首曲</div>
+    <button class="splash-btn" id="splashBtn">打开音乐盒</button>
+    <div class="splash-hint">🎧 戴上耳机，效果加倍</div>
+  </div>
+
+  <!-- 主界面 -->
+  <div id="app">
+    <!-- 全屏 3D 画布 -->
+    <div id="bg" class="particle-container"></div>
+
+    <!-- 左边缘竖排导航 -->
+    <nav class="edge-nav" id="edgeNav">
+      <button class="nav-item active" data-view="viz">
+        <span class="nav-icon">◈</span>
+        <span class="nav-text">可视化</span>
+      </button>
+      <button class="nav-item" data-view="library">
+        <span class="nav-icon">♪</span>
+        <span class="nav-text">曲库</span>
+      </button>
+      <button class="nav-item" data-view="create">
+        <span class="nav-icon">✎</span>
+        <span class="nav-text">创作</span>
+      </button>
+      <a class="nav-item nav-link" href="http://localhost:5173" target="_blank" rel="noopener">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-text">管家后台</span>
+      </a>
+    </nav>
+
+    <!-- 左侧歌词列表 -->
+    <div class="lyrics-panel" id="lyricsOverlay" style="display:none;">
+      <div class="lyrics-list" id="lyricsList"></div>
+    </div>
+
+    <!-- 右上迷你播放器 -->
+    <div class="mini-player" id="miniPlayer">
+      <div class="mp-top">
+        <div class="mp-info">
+          <div class="mp-name" id="pbName">未播放</div>
+          <div class="mp-idea" id="pbIdea"></div>
+        </div>
+        <button class="mp-play" id="playBtn" disabled>▶</button>
+      </div>
+      <div class="mp-progress">
+        <span class="mp-time" id="pbCurrentTime">0:00</span>
+        <div class="mp-bar" id="pbBar">
+          <div class="mp-bar-fill" id="pbBarFill"></div>
+        </div>
+        <span class="mp-time" id="pbTotalTime">0:00</span>
+      </div>
+      <div class="mp-volume">
+        <span class="mp-vol-icon">🔊</span>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7" />
+      </div>
+    </div>
+
+    <!-- 右侧水银柱面板 -->
+    <aside class="thermo-panel" id="thermoPanel">
+      <div class="thermo-panel-header">
+        <span class="thermo-label">Token</span>
+      </div>
+      <div class="thermo-tube">
+        <div class="thermo-mercury" id="mercury">
+          <div class="thermo-mercury-shine"></div>
+        </div>
+        <div class="thermo-bulb">
+          <div class="thermo-bulb-inner" id="bulbInner"></div>
+        </div>
+      </div>
+      <div class="thermo-readout">
+        <div class="thermo-value" id="thermoValue">0</div>
+        <div class="thermo-unit">tokens/s</div>
+      </div>
+      <div class="thermo-history" id="thermoHistory"></div>
+    </aside>
+
+    <!-- 左下音频数值 -->
+    <div class="audio-meters" id="audioMeters">
+      <div class="meter"><span class="meter-label">BASS</span><span class="meter-value" id="meterBass">0.00</span></div>
+      <div class="meter"><span class="meter-label">MID</span><span class="meter-value" id="meterMid">0.00</span></div>
+      <div class="meter"><span class="meter-label">TREBLE</span><span class="meter-value" id="meterTreble">0.00</span></div>
+      <div class="meter"><span class="meter-label">ENERGY</span><span class="meter-value" id="meterEnergy">0.00</span></div>
+    </div>
+
+    <!-- 右下提示 -->
+    <div class="orbit-hint">DRAG TO ORBIT · CLICK TO PULSE</div>
+
+    <!-- 曲库面板（点击 nav 曲库时弹出） -->
+    <div class="overlay-panel library-panel" id="libraryPanel" style="display:none;">
+      <div class="panel-header">
+        <h2>曲库</h2>
+        <span class="muted" id="songCount">0 首歌</span>
+        <button class="panel-close" data-close="libraryPanel">×</button>
+      </div>
+      <div class="songlist" id="songList"></div>
+    </div>
+
+    <!-- 创作面板（点击 nav 创作时弹出） -->
+    <div class="overlay-panel create-panel" id="createPanel" style="display:none;">
+      <div class="panel-header">
+        <h2>创作</h2>
+        <button class="panel-close" data-close="createPanel">×</button>
+      </div>
+      <div class="create-body">
+        <div class="make-song-row">
+          <input
+            type="text"
+            class="make-song-input"
+            id="makeInput"
+            placeholder="说一个想法，我唱给你听--比如：下雨的夜晚 温柔的钢琴"
+          />
+          <button class="make-song-btn" id="makeBtn" disabled>做一首</button>
+          <label class="make-song-toggle">
+            <input type="checkbox" id="instrumentalToggle" />
+            纯音乐
+          </label>
+          <button class="mode-toggle-btn" id="modeToggle" title="切换高级模式">
+            <span id="modeLabel">自己写</span>
+          </button>
+        </div>
+        <div class="lyrics-wrap" id="lyricsWrap">
+          <textarea
+            class="lyrics-textarea"
+            id="lyricsTextarea"
+            placeholder="在这里写下你的歌词，每行一句..."
+            rows="4"
+          ></textarea>
+        </div>
+        <div id="creatingCard" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- 中心提示 -->
+    <div class="stage-center" id="stageCenter">
+      <p class="stage-hint">选一首歌开始</p>
+      <p class="muted">粒子波浪会随节奏起伏</p>
+    </div>
+
+    <!-- 隐藏的兼容元素（main.js 引用但不再显示） -->
+    <div style="display:none;">
+      <div id="nowplaying"><span class="muted">还没有播放</span></div>
+      <div id="lyricsLine0"></div>
+      <div id="lyricsLine1"></div>
+      <div id="lyricsLine2"></div>
+    </div>
+  </div>
+
+  <!-- 隐藏的音频元素 -->
+  <audio id="audio" preload="auto"></audio>
+
+  <!-- Three.js CDN + addons -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="js/particle-scene.js?v25"></script>
+  <script src="js/audio-receiver.js?v2"></script>
+  <script src="js/main.js?v11"></script>
+</body>
+</html>

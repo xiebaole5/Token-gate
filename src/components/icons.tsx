@@ -100,3 +100,14 @@ export function IconClose(p: IconProps) {
     </svg>
   );
 }
+
+/** 锁/隐私：数据安全 */
+export function IconLock(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 018 0v4" />
+      <circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}

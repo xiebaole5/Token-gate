@@ -102,8 +102,10 @@ export function useBackend() {
 
   // 初始拉取 + SSE 订阅
   useEffect(() => {
-    refreshProviders();
-    refreshUsages();
+    queueMicrotask(() => {
+      refreshProviders();
+      refreshUsages();
+    });
     let es: EventSource | null = null;
     try {
       es = new EventSource('/api/stream');

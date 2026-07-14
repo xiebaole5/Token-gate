@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { useButler, type ButlerSource } from '../lib/useButler';
 import type { useBackend } from '../lib/useBackend';
-import { IconBot, IconDot, IconCloud, IconAlert } from './icons';
+import { IconBot, IconDot, IconCloud, IconAlert, IconLock } from './icons';
 
 const QUICK_ASKS = [
   '这个月哪个项目最烧钱？',
@@ -45,8 +45,13 @@ export function ButlerPanel({ backend }: { backend: ReturnType<typeof useBackend
   // 默认优先选中在线的本地模型
   useEffect(() => {
     if (sourceKey) return;
-    if (butler.localOnline) setSourceKey(`local:${butler.localOnline.url}`);
-    else if (providers.length) setSourceKey(`provider:${providers[0].id}`);
+    const nextSource = butler.localOnline
+      ? `local:${butler.localOnline.url}`
+      : providers.length
+        ? `provider:${providers[0].id}`
+        : '';
+    if (!nextSource) return;
+    queueMicrotask(() => setSourceKey(nextSource));
   }, [butler.localOnline, providers, sourceKey]);
 
   useEffect(() => {
@@ -125,37 +130,45 @@ export function ButlerPanel({ backend }: { backend: ReturnType<typeof useBackend
       <div className="butler-head">
         <div className="butler-title">
           <h2><IconBot size={20} /> Token 管家</h2>
-          <p className="muted">
-            用自然语言问你的账本。
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
+            <span className="privacy-badge">
+              <IconLock size={13} /> 数据不出本机
+            </span>
             {isLocalSelected ? (
-              <span className="badge-local"> <IconDot size={8} /> 本地模型 · 数据不出门</span>
+              <span className="badge-local"> <IconDot size={8} /> 本地模型</span>
             ) : (
-              <span className="badge-cloud"> <IconCloud size={13} /> 云端模型 · 发送前会提醒外发</span>
+              <span className="badge-cloud"> <IconCloud size={13} /> 云端模型</span>
             )}
-          </p>
+          </div>
         </div>
         <div className="butler-source">
           <label className="muted">管家大脑：</label>
-          <select value={sourceKey} onChange={(e) => setSourceKey(e.target.value)}>
-            <optgroup label="本地模型（数据不出门）">
-              {butler.probes.map((p) => (
-                <option key={p.url} value={`local:${p.url}`} disabled={!p.online}>
-                  {p.online ? '● ' : '○ '}{p.label}
-                  {p.online && p.models[0] ? ` · ${p.models[0]}` : p.online ? '' : ' · 未启动'}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="云端模型（会外发数据）">
-              {providers.map((p) => (
-                <option key={p.id} value={`provider:${p.id}`} disabled={!p.hasKey}>
-                  {p.name}
-                  {p.hasKey ? '（云端）' : ' · 未配 key'}
-                </option>
-              ))}
-            </optgroup>
-          </select>
+          <div className="seg" style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {butler.probes.map((p) => (
+              <button
+                key={p.url}
+                className={sourceKey === `local:${p.url}` ? 'seg-on' : ''}
+                disabled={!p.online}
+                onClick={() => setSourceKey(`local:${p.url}`)}
+                title={p.online ? p.label : '未启动'}
+              >
+                {p.online ? '本地' : '离线'}{p.models[0] ? ` · ${p.models[0]}` : ''}
+              </button>
+            ))}
+            {providers.map((p) => (
+              <button
+                key={p.id}
+                className={sourceKey === `provider:${p.id}` ? 'seg-on' : ''}
+                disabled={!p.hasKey}
+                onClick={() => setSourceKey(`provider:${p.id}`)}
+                title={p.hasKey ? p.name : '未配 key'}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
           <button className="btn-ghost" onClick={() => butler.probe()} disabled={butler.probing}>
-            {butler.probing ? '探测中…' : '重探本地'}
+            {butler.probing ? '探测中…' : '重探'}
           </button>
         </div>
       </div>

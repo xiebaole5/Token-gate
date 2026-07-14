@@ -33,8 +33,23 @@ const MUTED = '#8a929e';
 const TEXT = '#e8eaed';
 const EMERALD = '#10b981';
 const EMERALD_SOFT = 'rgba(16,185,129,0.35)';
-const COMPARE = '#7c5cff'; // 对比用第二色，仅用于「输出 vs 输入」对照
+const COMPARE = '#06b6d4'; // 对比用第二色（cyan），仅用于「输出 vs 输入」对照
 const TT = { backgroundColor: '#11141a', borderColor: '#232931', textStyle: { color: TEXT } };
+
+function ChartFrame({ option, height }: { option: EChartsOption; height: number }) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  return (
+    <div style={{ width: '100%', minWidth: 1, height }}>
+      {ready ? <ReactECharts option={option} style={{ width: '100%', height: '100%' }} notMerge /> : null}
+    </div>
+  );
+}
 
 function buildDays(records: UsageRecord[], days = 14) {
   const out: { date: string; label: string; cost: number; tokens: number }[] = [];
@@ -109,7 +124,7 @@ function TrendChart({ records }: { records: UsageRecord[] }) {
       ],
     };
   }, [records]);
-  return <ReactECharts option={option} style={{ height: 260 }} notMerge />;
+  return <ChartFrame option={option} height={260} />;
 }
 
 /** 横向消耗排行 */
@@ -126,7 +141,7 @@ function RankBar({ records, by }: { records: UsageRecord[]; by: 'model' | 'proje
     };
   }, [records, by]);
   if (records.length === 0) return <p className="muted">还没有数据</p>;
-  return <ReactECharts option={option} style={{ height: 220 }} notMerge />;
+  return <ChartFrame option={option} height={220} />;
 }
 
 /** 模型 Token 排行榜：名次 + 总量 + 输入/输出拆分 + 相对长度条 */
@@ -204,7 +219,7 @@ function InOutCompareChart({ records }: { records: UsageRecord[] }) {
     };
   }, [records]);
   if (records.length === 0) return <p className="muted">还没有数据</p>;
-  return <ReactECharts option={option} style={{ height: 240 }} notMerge />;
+  return <ChartFrame option={option} height={240} />;
 }
 
 /** 工具种类英文 → 中文标签 */
@@ -257,7 +272,6 @@ function DetectedTools({
 
   useEffect(() => {
     let cancel = false;
-    setLoading(true);
     fetch('/api/scan/ai-tools')
       .then((r) => r.json())
       .then((d: ScanResult) => {
@@ -437,7 +451,7 @@ function ProviderMiniCard({
         <div className="prov-cost">{fmtUsd(totalCost)}</div>
       </div>
       <div className="prov-spark">
-        <ReactECharts option={option} style={{ height: 56 }} notMerge />
+        <ChartFrame option={option} height={56} />
       </div>
       <div className="prov-foot">
         <span className="muted">{totalTokens.toLocaleString()} tok · {callCount} 次</span>
@@ -468,14 +482,15 @@ export function Dashboard({
     () => records.reduce((a, r) => a + r.inputTokens + r.outputTokens, 0),
     [records],
   );
+  const [mountedAt] = useState(() => Date.now());
   const inputTokens = useMemo(() => records.reduce((a, r) => a + r.inputTokens, 0), [records]);
   const outputTokens = useMemo(() => records.reduce((a, r) => a + r.outputTokens, 0), [records]);
   const recent7d = useMemo(() => {
-    const since = Date.now() - 7 * 86400_000;
+    const since = mountedAt - 7 * 86400_000;
     return records
       .filter((r) => new Date(r.at).getTime() >= since)
       .reduce((a, r) => a + r.costUsd, 0);
-  }, [records]);
+  }, [mountedAt, records]);
   const projectCount = useMemo(() => new Set(records.map((r) => r.project)).size, [records]);
 
   // 把记录按 provider 名分组（按 project 字段，因为代理捕获时 project=providerName）

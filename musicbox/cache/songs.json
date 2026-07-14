@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "songs": [
+    {
+      "id": "demo-1",
+      "name": "雨夜钢琴",
+      "idea": "下雨的夜晚 温柔的钢琴",
+      "duration": 30000,
+      "audioPath": "cache/demo-1.wav",
+      "lyrics": "窗外雨声滴答\n键盘上指尖轻抚\n夜的温柔在流淌\n每一个音符都是思念\n雨停了\n琴声还在回荡",
+      "createdAt": "2025-07-10T10:00:00Z",
+      "instrumental": false
+    },
+    {
+      "id": "demo-2",
+      "name": "星河漂流",
+      "idea": "在银河里独自漂流的宇航员",
+      "duration": 35000,
+      "audioPath": "cache/demo-2.wav",
+      "lyrics": "头盔外面是星河\n舱内只有呼吸声\n地球已经远了\n我是一条孤独的鱼\n游在没有水的海洋\n星辰是我的灯塔\n漂流 漂流\n直到遇见你",
+      "createdAt": "2025-07-09T14:30:00Z",
+      "instrumental": false
+    },
+    {
+      "id": "demo-3",
+      "name": "海边日出",
+      "idea": "纯音乐 看日出的清晨",
+      "duration": 30000,
+      "audioPath": "cache/demo-3.wav",
+      "lyrics": "",
+      "createdAt": "2025-07-08T06:00:00Z",
+      "instrumental": true
+    }
+  ]
+}

@@ -9,18 +9,20 @@ import { BudgetPanel } from './components/BudgetPanel';
 import { RecordsPanel } from './components/RecordsPanel';
 import { PricePanel } from './components/PricePanel';
 import { ButlerPanel } from './components/ButlerPanel';
+import { MusicBox } from './components/MusicBox';
 import { IconGate, IconAlert } from './components/icons';
 import { fmtUsd } from './lib/pricing';
 import type { UsageRecord } from './lib/types';
 
-type Tab = 'dashboard' | 'butler' | 'providers' | 'entry' | 'budget' | 'records' | 'prices';
+type Tab = 'dashboard' | 'butler' | 'providers' | 'entry' | 'budget' | 'records' | 'prices' | 'musicbox';
 
-// 全部 7 个 tab 都对外可见
+// 全部 8 个 tab 都对外可见
 const TABS: { id: Tab; label: string }[] = [
   { id: 'dashboard', label: '总览' },
   { id: 'providers', label: '接入与监听' },
   { id: 'records', label: '流水与闸门' },
   { id: 'butler', label: 'AI 管家' },
+  { id: 'musicbox', label: '音乐盒' },
   { id: 'entry', label: '记一笔' },
   { id: 'budget', label: '预算与闸门' },
   { id: 'prices', label: '单价表' },
@@ -114,6 +116,7 @@ function App() {
           />
         )}
         {tab === 'butler' && <ButlerPanel backend={backend} />}
+        {tab === 'musicbox' && <MusicBox records={allRecords} />}
         {tab === 'providers' && <ProvidersPanel backend={backend} />}
         {tab === 'entry' && <EntryForm tg={tg} />}
         {tab === 'budget' && <BudgetPanel tg={tg} />}
